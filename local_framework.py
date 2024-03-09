@@ -20,7 +20,10 @@ def local_framework(stim: np.array, dt: int, params: dict):
     r_lambda = mu * lambda_d**2
 
     # Generate decoding weights
-    W = params["w_mean"] * np.append(-np.ones(int(np.ceil(N/2))), np.ones(int(np.floor(N/2)))) + np.random.random((nd, N)) * params["w_sig"]
+    W = (np.dot(params["w_mean"].T, np.append(-np.ones(int(np.ceil(N/2))), np.ones(int(np.floor(N/2)))).reshape(1, -1))
+                + np.random.random((nd, N)) * params["w_sig"])
+    # weights_left = np.append(-np.ones(int(np.ceil(N/2))), np.ones(int(np.floor(N/2))))
+    # W = params["w_mean"] * weights_left.reshape(1, -1) + np.random.random((nd, N)) * params["w_sig"]
     # Threshold
     T = (r_lambda + np.sum(pow(W.T, 2), 1)) / 2
 
@@ -72,7 +75,7 @@ def local_framework(stim: np.array, dt: int, params: dict):
         penalty = penalty + dt * d_penalty
 
         # update voltage 
-        vv[:, t] = W * (A_mult_delay @ zz[:, t] - R_mult_delay * W @ rr[:, t]) + penalty
+        vv[:, t] = W.T @ (A_mult_delay @ zz[:, t] - R_mult_delay * W @ rr[:, t]) + penalty
 
         # COmpute instantaneous spike rate
         rt = alpha * (vv[:, t] - T)
